@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "300216190162",
+    "project_id": "instadamiolandafinal",
+    "storage_bucket": "instadamiolandafinal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300216190162:android:345adc13f66b21e14b590b",
+        "android_client_info": {
+          "package_name": "com.example.instadamiolandafinal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBQrrJOY3X3xAilFfsIRopQLY91N750cg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
