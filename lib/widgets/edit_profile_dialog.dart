@@ -64,7 +64,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
     if (_photoPath != null) {
       await prefs.setString('photoPath', _photoPath!);
-      await prefs.setString('avatar_$uid', _photoPath!); // ✅ Guardem per ús global
+      await prefs.setString('avatar_$uid', _photoPath!);
     }
 
     widget.onUpdated();

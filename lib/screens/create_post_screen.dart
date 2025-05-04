@@ -68,7 +68,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
 
       if (mounted) {
-        Navigator.pop(context); // ✅ Tanca i torna a ProfileScreen
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(resultat)),
         );

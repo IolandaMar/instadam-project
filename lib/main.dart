@@ -9,7 +9,7 @@ void main() async {
   await Firebase.initializeApp();
 
   final themeProvider = ThemeProvider();
-  await themeProvider.loadFromPrefs(); // 👈 Assegura’t que el tema es carrega abans de runApp
+  await themeProvider.loadFromPrefs();
 
   runApp(
     ChangeNotifierProvider<ThemeProvider>.value(

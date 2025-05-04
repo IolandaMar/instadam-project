@@ -45,7 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await prefs.setString('username', usuari['username']);
         await prefs.setString('bio', usuari['bio']);
       } else {
-        // Guardar per primer cop si no existia
         await FirebaseFirestore.instance.collection('usuaris').doc(uid).set({
           'uid': uid,
           'username': 'usuariperdefecte',

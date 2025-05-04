@@ -8,7 +8,6 @@ class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String cacheKey = 'cached_posts';
 
-  // 🔼 Pujar un nou post
   Future<String> pujarPost({
     required String uid,
     required String username,
@@ -39,7 +38,6 @@ class PostService {
     return resultat;
   }
 
-  // 🔽 Obtenir posts en temps real i guardar-los localment
   Stream<List<Post>> obtenirPosts() {
     return _firestore
         .collection('posts')
@@ -54,7 +52,7 @@ class PostService {
           return null;
         }
       })
-          .whereType<Post>() // filtra nulls
+          .whereType<Post>()
           .toList();
 
       _guardarPostsEnLocal(posts);
@@ -62,14 +60,12 @@ class PostService {
     });
   }
 
-  // 💾 Guardar posts localment
   Future<void> _guardarPostsEnLocal(List<Post> posts) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> jsonPosts = posts.map((p) => jsonEncode(p.toJson())).toList();
     await prefs.setStringList(cacheKey, jsonPosts);
   }
 
-  // 🗃️ Obtenir posts des del cache
   Future<List<Post>> obtenirPostsDesDelCache() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String>? cached = prefs.getStringList(cacheKey);
@@ -96,7 +92,6 @@ class PostService {
     }
   }
 
-  // ❤️ Canviar estat de "m'agrada"
   Future<void> canviarLike({
     required String postId,
     required String uid,

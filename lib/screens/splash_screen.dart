@@ -16,7 +16,6 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    // Animació d'opacitat suau
     Timer(const Duration(milliseconds: 300), () {
       setState(() => _opacity = 1.0);
     });

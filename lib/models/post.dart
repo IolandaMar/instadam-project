@@ -19,7 +19,6 @@ class Post {
     required this.likes,
   });
 
-  // Constructor des de Firestore
   factory Post.fromSnap(DocumentSnapshot snap) {
     final data = snap.data() as Map<String, dynamic>;
 
@@ -36,7 +35,6 @@ class Post {
     );
   }
 
-  // Constructor des de Map<String, dynamic> (per JSON/local)
   factory Post.fromMap(Map<String, dynamic> data) {
     return Post(
       id: data['id'] ?? '',
@@ -49,7 +47,6 @@ class Post {
     );
   }
 
-  // Exportar a Firestore / JSON
   Map<String, dynamic> toJson() => {
     'id': id,
     'uid': uid,

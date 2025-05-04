@@ -15,7 +15,7 @@ class AuthService {
     try {
       if (email.isNotEmpty && contrasenya.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.clear(); // 🔄 Neteja qualsevol dada d'usuari anterior
+        await prefs.clear();
 
         await _auth.signInWithEmailAndPassword(
           email: email,
