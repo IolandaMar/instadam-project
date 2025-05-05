@@ -7,7 +7,7 @@ import 'package:instadamiolandafinal/screens/comments_screen.dart';
 import 'package:instadamiolandafinal/services/post_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
-import 'likes_dialog.dart'; // Afegeix això
+import 'likes_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'likes_dialog.dart'; // Assegura't que aquest fitxer existeix
+import 'likes_dialog.dart';
 
 class CommentsScreen extends StatefulWidget {
   final String postId;
