@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instadamiolandafinal/models/post.dart';
 import 'package:instadamiolandafinal/screens/comments_screen.dart';
 import 'package:instadamiolandafinal/services/post_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'likes_dialog.dart';
 
@@ -27,15 +25,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _carregarAvatars() async {
-    final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
+    final snapshot = await FirebaseFirestore.instance.collection('usuaris').get();
 
-    final avatarMap = <String, String>{};
-    for (var key in keys) {
-      if (key.startsWith('avatar_')) {
-        final uid = key.replaceFirst('avatar_', '');
-        avatarMap[uid] = prefs.getString(key) ?? '';
-      }
+    final Map<String, String> avatarMap = {};
+    for (final doc in snapshot.docs) {
+      final uid = doc.id;
+      final data = doc.data();
+      final photoUrl = data['photoUrl'] ?? '';
+      avatarMap[uid] = photoUrl;
     }
 
     setState(() {
@@ -66,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context, index) {
               final post = posts[index];
               final bool liked = post.likes.contains(uidActual);
-              final avatarPath = avatars[post.uid];
+              final avatarUrl = avatars[post.uid] ?? '';
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,14 +72,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.grey[300],
-                      backgroundImage: (avatarPath != null && avatarPath.isNotEmpty)
-                          ? FileImage(File(avatarPath))
-                          : null,
-                      child: (avatarPath == null || avatarPath.isEmpty)
+                      backgroundImage:
+                      avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+                      child: avatarUrl.isEmpty
                           ? const Icon(Icons.person, color: Colors.white)
                           : null,
                     ),
-                    title: Text(post.username, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(post.username,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(
                       '${post.datePublished.day}/${post.datePublished.month}/${post.datePublished.year}',
                       style: const TextStyle(fontSize: 12),
@@ -92,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onSelected: (value) {
                         if (value == 'compartir') {
                           final textToShare = post.description +
-                              (post.photoUrls.isNotEmpty ? '\n${post.photoUrls.first}' : '');
+                              (post.photoUrls.isNotEmpty
+                                  ? '\n${post.photoUrls.first}'
+                                  : '');
                           Share.share(textToShare);
                         }
                       },
@@ -111,21 +110,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: post.photoUrls.length,
                         controller: PageController(viewportFraction: 1),
                         itemBuilder: (context, imgIndex) {
-                          return Image.file(
-                            File(post.photoUrls[imgIndex]),
+                          return Image.network(
+                            post.photoUrls[imgIndex],
                             fit: BoxFit.cover,
                             width: double.infinity,
                             errorBuilder: (_, __, ___) => Container(
                               height: 250,
                               color: Colors.grey[300],
-                              child: const Center(child: Text('Error en carregar la imatge')),
+                              child: const Center(
+                                  child: Text('Error en carregar la imatge')),
                             ),
                           );
                         },
                       ),
                     ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                     child: Row(
                       children: [
                         IconButton(
@@ -179,7 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                     child: RichText(
                       text: TextSpan(
                         style: Theme.of(context).textTheme.bodyMedium,

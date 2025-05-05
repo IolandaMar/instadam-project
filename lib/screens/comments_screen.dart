@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'likes_dialog.dart';
 
 class CommentsScreen extends StatefulWidget {
@@ -26,15 +24,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   Future<void> _carregarAvatars() async {
-    final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
+    final snapshot = await FirebaseFirestore.instance.collection('usuaris').get();
 
-    final avatarMap = <String, String>{};
-    for (var key in keys) {
-      if (key.startsWith('avatar_')) {
-        final uid = key.replaceFirst('avatar_', '');
-        avatarMap[uid] = prefs.getString(key) ?? '';
-      }
+    final Map<String, String> avatarMap = {};
+    for (final doc in snapshot.docs) {
+      final uid = doc.id;
+      final data = doc.data();
+      final photoUrl = data['photoUrl'] ?? '';
+      avatarMap[uid] = photoUrl;
     }
 
     setState(() {
@@ -46,7 +43,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final text = _comentariController.text.trim();
     if (text.isEmpty) return;
 
-    final userDoc = await FirebaseFirestore.instance.collection('usuaris').doc(uid).get();
+    final userDoc =
+    await FirebaseFirestore.instance.collection('usuaris').doc(uid).get();
     final username = userDoc.data()?['username'] ?? 'Usuari';
 
     await FirebaseFirestore.instance
@@ -69,13 +67,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
     final likes = List<String>.from(comentari['likes'] ?? []);
 
     if (likes.contains(uid)) {
-      await comentariRef.update({
-        'likes': FieldValue.arrayRemove([uid])
-      });
+      await comentariRef.update({'likes': FieldValue.arrayRemove([uid])});
     } else {
-      await comentariRef.update({
-        'likes': FieldValue.arrayUnion([uid])
-      });
+      await comentariRef.update({'likes': FieldValue.arrayUnion([uid])});
     }
   }
 
@@ -97,7 +91,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   .orderBy('timestamp', descending: false)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
                 final comentaris = snapshot.data!.docs.where((comentari) {
                   final data = comentari.data() as Map<String, dynamic>;
@@ -123,7 +119,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                         '${timestamp.day}/${timestamp.month}/${timestamp.year} • ${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
 
                     final String comentUid = data['uid'];
-                    final String? avatarPath = avatars[comentUid];
+                    final String? avatarUrl = avatars[comentUid];
                     final List likes = data['likes'] ?? [];
                     final bool liked = likes.contains(uid);
 
@@ -134,11 +130,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
                         children: [
                           CircleAvatar(
                             radius: 18,
-                            backgroundImage: (avatarPath != null && avatarPath.isNotEmpty)
-                                ? FileImage(File(avatarPath))
+                            backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                                ? NetworkImage(avatarUrl)
                                 : null,
                             backgroundColor: Colors.grey,
-                            child: (avatarPath == null || avatarPath.isEmpty)
+                            child: (avatarUrl == null || avatarUrl.isEmpty)
                                 ? const Icon(Icons.person, size: 18, color: Colors.white)
                                 : null,
                           ),
@@ -190,7 +186,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                         '${likes.length}',
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: likes.isNotEmpty ? Colors.blue : Colors.grey[600],
+                                          color: likes.isNotEmpty
+                                              ? Colors.blue
+                                              : Colors.grey[600],
                                           decoration: likes.isNotEmpty
                                               ? TextDecoration.underline
                                               : null,
@@ -224,7 +222,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       fillColor: Theme.of(context).brightness == Brightness.dark
                           ? Colors.grey[800]
                           : Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,

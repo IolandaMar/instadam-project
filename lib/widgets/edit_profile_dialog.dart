@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   late TextEditingController _usernameController;
   late TextEditingController _bioController;
   String? _photoPath;
+  bool _avatarActualitzat = false;
 
   @override
   void initState() {
@@ -41,9 +43,22 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   Future<void> _seleccionarAvatar() async {
     final picker = ImagePicker();
     final imatge = await picker.pickImage(source: ImageSource.gallery);
-
     if (imatge != null) {
-      setState(() => _photoPath = imatge.path);
+      setState(() {
+        _photoPath = imatge.path;
+        _avatarActualitzat = true;
+      });
+    }
+  }
+
+  Future<String?> _pujarAvatarAlStorage(String path) async {
+    try {
+      final ref = FirebaseStorage.instance.ref().child('avatars').child('$uid.jpg');
+      await ref.putFile(File(path));
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('Error pujant avatar: $e');
+      return null;
     }
   }
 
@@ -53,22 +68,33 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
     final bio = _bioController.text.trim();
 
     try {
-      await FirebaseFirestore.instance.collection('usuaris').doc(uid).update({
-        'username': username,
-        'bio': bio,
-      });
-    } catch (_) {}
+      final userRef = FirebaseFirestore.instance.collection('usuaris').doc(uid);
 
-    await prefs.setString('username', username);
-    await prefs.setString('bio', bio);
+      String? novaUrlAvatar;
+      if (_avatarActualitzat && _photoPath != null) {
+        novaUrlAvatar = await _pujarAvatarAlStorage(_photoPath!);
+        if (novaUrlAvatar != null) {
+          await userRef.update({'photoUrl': novaUrlAvatar});
+          await prefs.setString('avatar_$uid', novaUrlAvatar);
+        } else {
+          throw 'No s\'ha pogut pujar l\'avatar.';
+        }
+      }
 
-    if (_photoPath != null) {
-      await prefs.setString('photoPath', _photoPath!);
-      await prefs.setString('avatar_$uid', _photoPath!);
+      await userRef.update({'username': username, 'bio': bio});
+      await prefs.setString('username', username);
+      await prefs.setString('bio', bio);
+
+      widget.onUpdated();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      print('Error desant perfil: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error desant el perfil.')),
+        );
+      }
     }
-
-    widget.onUpdated();
-    if (mounted) Navigator.pop(context);
   }
 
   @override

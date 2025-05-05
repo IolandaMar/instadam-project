@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instadamiolandafinal/services/post_service.dart';
+import 'package:instadamiolandafinal/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -56,15 +57,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final userDoc = await FirebaseFirestore.instance.collection('usuaris').doc(uid).get();
       final username = userDoc['username'] ?? 'Usuari';
 
-      final postId = const Uuid().v1();
-
-      final photoPaths = _selectedImages.map((xfile) => xfile.path).toList();
+      final List<String> urls = [];
+      for (final imatge in _selectedImages) {
+        final file = File(imatge.path);
+        final url = await StorageService().pujarImatge(file, 'posts');
+        urls.add(url);
+      }
 
       final resultat = await PostService().pujarPost(
         uid: uid,
         username: username,
         description: _descController.text.trim(),
-        photoUrls: photoPaths,
+        photoUrls: urls,
       );
 
       if (mounted) {

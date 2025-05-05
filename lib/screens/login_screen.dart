@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _mostrarContrasenya = false;
 
   Future<void> _desarDadesUsuari() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -139,12 +140,22 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
-                decoration: const InputDecoration(
+                obscureText: !_mostrarContrasenya,
+                decoration: InputDecoration(
                   hintText: 'Contrasenya',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _mostrarContrasenya ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _mostrarContrasenya = !_mostrarContrasenya;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
               ),
               const SizedBox(height: 24),
               ElevatedButton(

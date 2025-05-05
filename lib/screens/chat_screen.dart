@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatScreen extends StatefulWidget {
   final String receptorUid;
@@ -22,8 +20,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _missatgeController = TextEditingController();
   final String uidActual = FirebaseAuth.instance.currentUser!.uid;
 
-  String? _meuAvatar;
-  String? _receptorAvatar;
+  String? _meuAvatarUrl;
+  String? _receptorAvatarUrl;
 
   String get conversaId {
     return uidActual.compareTo(widget.receptorUid) < 0
@@ -38,10 +36,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _carregarAvatars() async {
-    final prefs = await SharedPreferences.getInstance();
+    final meuDoc = await FirebaseFirestore.instance.collection('usuaris').doc(uidActual).get();
+    final receptorDoc =
+    await FirebaseFirestore.instance.collection('usuaris').doc(widget.receptorUid).get();
+
     setState(() {
-      _meuAvatar = prefs.getString('avatar_$uidActual');
-      _receptorAvatar = prefs.getString('avatar_${widget.receptorUid}');
+      _meuAvatarUrl = meuDoc.data()?['photoUrl'];
+      _receptorAvatarUrl = receptorDoc.data()?['photoUrl'];
     });
   }
 
@@ -81,11 +82,11 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage: (_receptorAvatar != null && _receptorAvatar!.isNotEmpty)
-                  ? FileImage(File(_receptorAvatar!))
+              backgroundImage: (_receptorAvatarUrl != null && _receptorAvatarUrl!.isNotEmpty)
+                  ? NetworkImage(_receptorAvatarUrl!)
                   : null,
               backgroundColor: Colors.grey[400],
-              child: (_receptorAvatar == null || _receptorAvatar!.isEmpty)
+              child: (_receptorAvatarUrl == null || _receptorAvatarUrl!.isEmpty)
                   ? const Icon(Icons.person, size: 18, color: Colors.white)
                   : null,
             ),
@@ -151,20 +152,20 @@ class _ChatScreenState extends State<ChatScreen> {
                         alignment: esMeu ? Alignment.centerRight : Alignment.centerLeft,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: esMeu
-                              ? MainAxisAlignment.end
-                              : MainAxisAlignment.start,
+                          mainAxisAlignment: esMeu ? MainAxisAlignment.end : MainAxisAlignment.start,
                           children: [
                             if (!esMeu)
                               Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: CircleAvatar(
                                   radius: 16,
-                                  backgroundImage: (_receptorAvatar != null && _receptorAvatar!.isNotEmpty)
-                                      ? FileImage(File(_receptorAvatar!))
+                                  backgroundImage: (_receptorAvatarUrl != null &&
+                                      _receptorAvatarUrl!.isNotEmpty)
+                                      ? NetworkImage(_receptorAvatarUrl!)
                                       : null,
                                   backgroundColor: Colors.grey[400],
-                                  child: (_receptorAvatar == null || _receptorAvatar!.isEmpty)
+                                  child: (_receptorAvatarUrl == null ||
+                                      _receptorAvatarUrl!.isEmpty)
                                       ? const Icon(Icons.person, size: 16, color: Colors.white)
                                       : null,
                                 ),
@@ -172,7 +173,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             Flexible(
                               child: Container(
                                 margin: const EdgeInsets.symmetric(vertical: 4.0),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                padding:
+                                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 decoration: BoxDecoration(
                                   color: esMeu
                                       ? Colors.blueAccent
@@ -211,11 +213,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                 padding: const EdgeInsets.only(left: 8),
                                 child: CircleAvatar(
                                   radius: 16,
-                                  backgroundImage: (_meuAvatar != null && _meuAvatar!.isNotEmpty)
-                                      ? FileImage(File(_meuAvatar!))
+                                  backgroundImage: (_meuAvatarUrl != null &&
+                                      _meuAvatarUrl!.isNotEmpty)
+                                      ? NetworkImage(_meuAvatarUrl!)
                                       : null,
                                   backgroundColor: Colors.grey[400],
-                                  child: (_meuAvatar == null || _meuAvatar!.isEmpty)
+                                  child: (_meuAvatarUrl == null || _meuAvatarUrl!.isEmpty)
                                       ? const Icon(Icons.person, size: 16, color: Colors.white)
                                       : null,
                                 ),
@@ -241,7 +244,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       hintText: 'Escriu un missatge...',
                       filled: true,
                       fillColor: isDark ? Colors.grey[900] : Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,

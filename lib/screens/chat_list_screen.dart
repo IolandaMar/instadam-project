@@ -1,9 +1,7 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instadamiolandafinal/screens/chat_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -13,31 +11,7 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  final uidActual = FirebaseAuth.instance.currentUser!.uid;
-  Map<String, String> cachedAvatars = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _carregarAvatars();
-  }
-
-  Future<void> _carregarAvatars() async {
-    final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
-
-    final Map<String, String> avatars = {};
-    for (var key in keys) {
-      if (key.startsWith('avatar_')) {
-        final uid = key.replaceFirst('avatar_', '');
-        avatars[uid] = prefs.getString(key) ?? '';
-      }
-    }
-
-    setState(() {
-      cachedAvatars = avatars;
-    });
-  }
+  final String uidActual = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +39,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 }
 
                 final usuaris = snapshot.data!.docs
-                    .where((doc) => doc.data().toString().contains('uid') && doc['uid'] != uidActual)
+                    .where((doc) => doc['uid'] != uidActual)
                     .toList();
 
                 if (usuaris.isEmpty) {
@@ -79,27 +53,29 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   itemBuilder: (context, index) {
                     final usuari = usuaris[index];
                     final String uid = usuari['uid'];
-                    final String avatarPath = cachedAvatars[uid] ?? '';
+                    final String username = usuari['username'] ?? 'Usuari';
+                    final String email = usuari['email'] ?? '';
+                    final String photoUrl = usuari['photoUrl'] ?? '';
 
                     return ListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       leading: CircleAvatar(
                         radius: 22,
                         backgroundColor: Colors.grey[300],
-                        backgroundImage: avatarPath.isNotEmpty ? FileImage(File(avatarPath)) : null,
-                        child: avatarPath.isEmpty
+                        backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                        child: photoUrl.isEmpty
                             ? const Icon(Icons.person, color: Colors.white)
                             : null,
                       ),
                       title: Text(
-                        usuari['username'] ?? 'Usuari',
+                        username,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
                       subtitle: Text(
-                        usuari['email'] ?? '',
+                        email,
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.grey[400] : Colors.grey[700],
@@ -111,7 +87,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           MaterialPageRoute(
                             builder: (_) => ChatScreen(
                               receptorUid: uid,
-                              receptorNom: usuari['username'] ?? 'Usuari',
+                              receptorNom: username,
                             ),
                           ),
                         );

@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:instadamiolandafinal/models/post.dart';
 import 'package:instadamiolandafinal/screens/create_post_screen.dart';
 import 'package:instadamiolandafinal/services/post_service.dart';
@@ -42,8 +40,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final data = doc.data()!;
         usuari['username'] = data['username'] ?? 'usuariperdefecte';
         usuari['bio'] = data['bio'] ?? 'biografia per defecte';
+        usuari['photoPath'] = data['photoUrl'] ?? '';
         await prefs.setString('username', usuari['username']);
         await prefs.setString('bio', usuari['bio']);
+        await prefs.setString('photoPath', usuari['photoPath']);
       } else {
         await FirebaseFirestore.instance.collection('usuaris').doc(uid).set({
           'uid': uid,
@@ -54,8 +54,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'dataRegistre': DateTime.now(),
         });
       }
-
-      usuari['photoPath'] = prefs.getString('photoPath') ?? '';
 
       setState(() => _carregant = false);
     } catch (e) {
@@ -134,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 42,
                     backgroundImage: (photoPath != null && photoPath.isNotEmpty)
-                        ? FileImage(File(photoPath))
+                        ? NetworkImage(photoPath)
                         : null,
                     backgroundColor: Colors.grey[300],
                     child: (photoPath == null || photoPath.isEmpty)
@@ -211,8 +209,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: PageView.builder(
                             itemCount: posts[index].photoUrls.length,
                             itemBuilder: (context, i) {
-                              return Image.file(
-                                File(posts[index].photoUrls[i]),
+                              return Image.network(
+                                posts[index].photoUrls[i],
                                 fit: BoxFit.contain,
                               );
                             },
@@ -246,8 +244,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
-                    child: Image.file(
-                      File(posts[index].photoUrls.first),
+                    child: Image.network(
+                      posts[index].photoUrls.first,
                       fit: BoxFit.cover,
                     ),
                   );
