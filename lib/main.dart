@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:instadamiolandafinal/screens/splash_screen.dart';
 import 'package:instadamiolandafinal/providers/theme_provider.dart';
+import 'package:instadamiolandafinal/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,13 +14,13 @@ void main() async {
   runApp(
     ChangeNotifierProvider<ThemeProvider>.value(
       value: themeProvider,
-      child: const MyApp(),
+      child: const InstadamRootApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class InstadamRootApp extends StatelessWidget {
+  const InstadamRootApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +28,17 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        useMaterial3: true,
+        fontFamily: 'Roboto',
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        useMaterial3: true,
+        fontFamily: 'Roboto',
+      ),
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
       home: const SplashScreen(),
     );
   }

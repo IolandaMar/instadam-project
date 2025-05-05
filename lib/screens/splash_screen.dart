@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:instadamiolandafinal/main_app.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:instadamiolandafinal/providers/theme_provider.dart';
+import 'package:instadamiolandafinal/screens/login_screen.dart';
+import 'package:instadamiolandafinal/screens/main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -25,11 +29,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _iniciarApp() async {
     await Future.delayed(const Duration(seconds: 3));
-    final Widget app = await iniciarAppAmbTema();
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => app),
+        MaterialPageRoute(builder: (_) => const InstadamApp()),
       );
     }
   }
@@ -46,11 +49,11 @@ class _SplashScreenState extends State<SplashScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFFEDA75), // groc
-              Color(0xFFFC8C34), // taronja
-              Color(0xFFD62976), // rosa
-              Color(0xFF962FBF), // lila
-              Color(0xFF4F5BD5), // blau
+              Color(0xFFFEDA75),
+              Color(0xFFFC8C34),
+              Color(0xFFD62976),
+              Color(0xFF962FBF),
+              Color(0xFF4F5BD5),
             ],
           ),
         ),
@@ -85,3 +88,43 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
+class InstadamApp extends StatelessWidget {
+  const InstadamApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return AnimatedTheme(
+      duration: const Duration(milliseconds: 300),
+      data: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      child: MaterialApp(
+        title: 'Instadam',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          brightness: Brightness.light,
+          useMaterial3: true,
+          fontFamily: 'Roboto',
+        ),
+        darkTheme: ThemeData(
+          brightness: Brightness.dark,
+          useMaterial3: true,
+          fontFamily: 'Roboto',
+        ),
+        themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        home: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            return snapshot.hasData ? const MainScreen() : const LoginScreen();
+          },
+        ),
+      ),
+    );
+  }
+}

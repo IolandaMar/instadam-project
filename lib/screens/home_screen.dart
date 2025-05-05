@@ -7,6 +7,7 @@ import 'package:instadamiolandafinal/screens/comments_screen.dart';
 import 'package:instadamiolandafinal/services/post_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
+import 'likes_dialog.dart'; // Afegeix això
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -160,9 +161,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (post.likes.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        '${post.likes.length} m\'agrada${post.likes.length > 1 ? "s" : ""}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => LikesDialog(uids: post.likes),
+                          );
+                        },
+                        child: Text(
+                          '${post.likes.length} m\'agrada${post.likes.length > 1 ? "s" : ""}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
                     ),
                   Padding(

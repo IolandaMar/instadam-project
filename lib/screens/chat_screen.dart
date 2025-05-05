@@ -62,6 +62,15 @@ class _ChatScreenState extends State<ChatScreen> {
     _missatgeController.clear();
   }
 
+  Future<void> _eliminarMissatge(String missatgeId) async {
+    await FirebaseFirestore.instance
+        .collection('xats')
+        .doc(conversaId)
+        .collection('missatges')
+        .doc(missatgeId)
+        .delete();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -111,82 +120,108 @@ class _ChatScreenState extends State<ChatScreen> {
                     final hora =
                         '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
 
-                    return Align(
-                      alignment: esMeu ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: esMeu
-                            ? MainAxisAlignment.end
-                            : MainAxisAlignment.start,
-                        children: [
-                          if (!esMeu)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundImage: (_receptorAvatar != null && _receptorAvatar!.isNotEmpty)
-                                    ? FileImage(File(_receptorAvatar!))
-                                    : null,
-                                backgroundColor: Colors.grey[400],
-                                child: (_receptorAvatar == null || _receptorAvatar!.isEmpty)
-                                    ? const Icon(Icons.person, size: 16, color: Colors.white)
-                                    : null,
-                              ),
-                            ),
-                          Flexible(
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: esMeu
-                                    ? Colors.blueAccent
-                                    : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                                borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(16),
-                                  topRight: const Radius.circular(16),
-                                  bottomLeft:
-                                  Radius.circular(esMeu ? 16 : 0),
-                                  bottomRight:
-                                  Radius.circular(esMeu ? 0 : 16),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    text,
-                                    style: TextStyle(
-                                      color: esMeu ? Colors.white : Colors.black87,
-                                      fontSize: 15,
-                                    ),
+                    return GestureDetector(
+                      onLongPress: () {
+                        if (esMeu) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Eliminar missatge'),
+                                content: const Text('Vols eliminar aquest missatge?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('Cancel·la'),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    hora,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: esMeu ? Colors.white70 : Colors.black45,
-                                    ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.of(context).pop();
+                                      await _eliminarMissatge(missatge.id);
+                                    },
+                                    child: const Text('Elimina'),
                                   ),
                                 ],
+                              );
+                            },
+                          );
+                        }
+                      },
+                      child: Align(
+                        alignment: esMeu ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: esMeu
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
+                          children: [
+                            if (!esMeu)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: CircleAvatar(
+                                  radius: 16,
+                                  backgroundImage: (_receptorAvatar != null && _receptorAvatar!.isNotEmpty)
+                                      ? FileImage(File(_receptorAvatar!))
+                                      : null,
+                                  backgroundColor: Colors.grey[400],
+                                  child: (_receptorAvatar == null || _receptorAvatar!.isEmpty)
+                                      ? const Icon(Icons.person, size: 16, color: Colors.white)
+                                      : null,
+                                ),
+                              ),
+                            Flexible(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: esMeu
+                                      ? Colors.blueAccent
+                                      : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(16),
+                                    topRight: const Radius.circular(16),
+                                    bottomLeft: Radius.circular(esMeu ? 16 : 0),
+                                    bottomRight: Radius.circular(esMeu ? 0 : 16),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      text,
+                                      style: TextStyle(
+                                        color: esMeu ? Colors.white : Colors.black87,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      hora,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: esMeu ? Colors.white70 : Colors.black45,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          if (esMeu)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundImage: (_meuAvatar != null && _meuAvatar!.isNotEmpty)
-                                    ? FileImage(File(_meuAvatar!))
-                                    : null,
-                                backgroundColor: Colors.grey[400],
-                                child: (_meuAvatar == null || _meuAvatar!.isEmpty)
-                                    ? const Icon(Icons.person, size: 16, color: Colors.white)
-                                    : null,
+                            if (esMeu)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: CircleAvatar(
+                                  radius: 16,
+                                  backgroundImage: (_meuAvatar != null && _meuAvatar!.isNotEmpty)
+                                      ? FileImage(File(_meuAvatar!))
+                                      : null,
+                                  backgroundColor: Colors.grey[400],
+                                  child: (_meuAvatar == null || _meuAvatar!.isEmpty)
+                                      ? const Icon(Icons.person, size: 16, color: Colors.white)
+                                      : null,
+                                ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },

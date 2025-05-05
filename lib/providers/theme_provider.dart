@@ -9,6 +9,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _isDarkMode = prefs.getBool('mode_fosc') ?? false;
+    notifyListeners();
   }
 
   void toggleTheme(bool isOn) async {

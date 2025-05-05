@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'likes_dialog.dart'; // Assegura't que aquest fitxer existeix
 
 class CommentsScreen extends StatefulWidget {
   final String postId;
@@ -57,9 +58,25 @@ class _CommentsScreenState extends State<CommentsScreen> {
       'uid': uid,
       'username': username,
       'timestamp': Timestamp.now(),
+      'likes': [],
     });
 
     _comentariController.clear();
+  }
+
+  void _canviarLikeComentari(DocumentSnapshot comentari) async {
+    final comentariRef = comentari.reference;
+    final likes = List<String>.from(comentari['likes'] ?? []);
+
+    if (likes.contains(uid)) {
+      await comentariRef.update({
+        'likes': FieldValue.arrayRemove([uid])
+      });
+    } else {
+      await comentariRef.update({
+        'likes': FieldValue.arrayUnion([uid])
+      });
+    }
   }
 
   @override
@@ -107,6 +124,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
                     final String comentUid = data['uid'];
                     final String? avatarPath = avatars[comentUid];
+                    final List likes = data['likes'] ?? [];
+                    final bool liked = likes.contains(uid);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -142,9 +161,43 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  formattedDate,
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                Row(
+                                  children: [
+                                    Text(
+                                      formattedDate,
+                                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: () => _canviarLikeComentari(comentari),
+                                      child: Icon(
+                                        liked ? Icons.favorite : Icons.favorite_border,
+                                        color: liked ? Colors.red : Colors.grey,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (likes.isNotEmpty) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) => LikesDialog(uids: List<String>.from(likes)),
+                                          );
+                                        }
+                                      },
+                                      child: Text(
+                                        '${likes.length}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: likes.isNotEmpty ? Colors.blue : Colors.grey[600],
+                                          decoration: likes.isNotEmpty
+                                              ? TextDecoration.underline
+                                              : null,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
