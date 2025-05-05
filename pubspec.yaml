@@ -11,7 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cupertino_icons: ^1.0.8
   firebase_core: ^2.24.2
   firebase_auth: ^4.17.6
@@ -29,6 +28,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -36,3 +36,8 @@ flutter:
     - assets/logo_dark.png
     - assets/logo_white.png
     - assets/google_icon.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo_dark.png"
